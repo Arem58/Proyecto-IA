@@ -1,3 +1,4 @@
+from sys import path
 import numpy as np
 import tensorflow as tf
 import pandas as pd
@@ -17,59 +18,50 @@ from tensorflow.keras.applications.xception import Xception
 import pickle
 import fastai
 from fastai.vision import *
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import NearestNeighbors
 from sklearn.metrics import accuracy_score
 
 #Directorios
 
 train = './train/' #Aqui va el directorio para las imagenes de entrenamiento
-validation = './test/' #Aqui van las imagenes para el test
+#validation = './test/' #Aqui van las imagenes para el test
 
 csv_train = pd.read_csv('train.csv')
 csv_test = pd.read_csv('test.csv')
 
-
+csv_train['grupo'] = csv_train['group'].map(str)
 
 print(csv_train.head())
-print(csv_train['group'].head())
-
-grupos = csv_train['group']
-g = list(grupos.drop_duplicates())
+print(csv_train.describe())
 
 #Splitting train to train and validation
-df_train, df_val = train_test_split(csv_train, test_size = 0.25, random_state = 0)
+df_train, df_val = train_test_split(csv_train, train_size=0.5, test_size = 0.25, random_state = 0)
 
 
-imgSize = 256
+imgSize = 255
 batchSize = 50
 
-trainGen = ImageDataGenerator(rescale=1. /255)
+trainGen = ImageDataGenerator(rescale=1./255, 
+        shear_range=0.2, 
+        horizontal_flip=True)
 
-validGen = ImageDataGenerator(rescale=1. /255)
+validGen = ImageDataGenerator(rescale=1./255, 
+        shear_range=0.2, 
+        horizontal_flip=True)
 
-'''imageTrain = trainGen.flow_from_dataframe(dataframe = df_train, directory = train, x_col= 'filename', y_col= "class", batch_size=batchSize, seed = 42, shuffle = True, class_mode= 'categorical', flip_vertical = True, color_mode = 'rgb', target_size = (imgSize, imgSize))
-imageVal = testGen.flow_from_dataframe(dataframe = df_val, directory = validation, x_col = 'filename', y_col = "class", batch_size=1, seed = 42, shuffle = True, class_mode = 'categorical', flip_vertical = True, color_mode = 'rgb', target_size = (imgSize, imgSize))
-
-print("Imagenes convertidas y cargadas")
-
-testX, testY = next(testGen.flow_from_dataframe(dataframe = df_val, directory = train, x_col= 'filename', y_col= "class", target_size = (imgSize, imgSize), batch_size = 50, class_mode = 'categorical'))
-
-x_col= 'name', y_col= g, batch_size = 50, seed = 42, shuffle = True, class_mode= 'categorical', flip_vertical = True, color_mode = 'rgb',
-
-'''
-
-imageTrain = trainGen.flow_from_dataframe(dataframe = df_train, directory = train,  batch_size=50, target_size = (imgSize, imgSize), class_mode='input')
-imageVal = validGen.flow_from_dataframe(dataframe = df_val, directory = train, batch_size=50, target_size = (imgSize, imgSize), class_mode='input')
+imageTrain = trainGen.flow_from_dataframe(dataframe=df_train, directory=train, target_size=(imgSize, imgSize), x_col= 'name', y_col= 'grupo', batch_size = batchSize, seed = 42, shuffle = True, class_mode= 'categorical', flip_vertical = True, color_mode = 'rgb')
+#imageVal = validGen.flow_from_dataframe(dataframe=df_val, directory=train, target_size=(imgSize, imgSize), x_col= 'name', y_col= 'grupo', batch_size =batchSize, seed = 42, shuffle = True, class_mode= 'categorical', flip_vertical = True, color_mode = 'rgb')
 
 
-testDataGenerator = ImageDataGenerator(rescale=1. /255)
-testGen = testDataGenerator.flow_from_directory(directory = validation, shuffle = True, class_mode = None, color_mode = 'rgb', target_size = (imgSize, imgSize))
+#testDataGenerator = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
+#testGen = testDataGenerator.flow_from_directory(directory = validation, shuffle = True, class_mode = None, color_mode = 'rgb', target_size = (imgSize, imgSize))
 
-testX, testY = next(testDataGenerator.flow_from_dataframe(dataframe = df_val, directory = train, target_size = (imgSize, imgSize), batch_size = 2523), class_mode='input')
+testX, testY = next(validGen.flow_from_dataframe(dataframe=df_val, directory=train, target_size=(imgSize, imgSize), x_col= 'name', y_col= 'grupo', batch_size = batchSize, seed = 42, shuffle = True, class_mode= 'categorical', flip_vertical = True, color_mode = 'rgb'))
 
-print("Tests")
+print("Creando el modelo")
 
-classifier = KNeighborsClassifier(n_neighbors=3).fit(imageTrain, imageVal)
+classifier = NearestNeighbors(n_neighbors=10)
+classifier.fit(imageTrain)
 
 print("modelo creado")
 
