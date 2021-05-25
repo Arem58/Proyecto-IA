@@ -1,7 +1,7 @@
 # Proyecto-IA
 
-Renato Estrada - 181099
-Jorge Perez - 16362
+- Renato Estrada - 181099
+- Jorge Perez - 16362
 
 # Instrucciones:
 
