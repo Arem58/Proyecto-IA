@@ -5,8 +5,8 @@ Jorge Perez - 16362
 
 # Instrucciones:
 
-Entrnamiendo de modelo: 
-  -python data_train.py
+Entrnamiendo de modelo:
+  - data_train.py
 
 Motor de busqueda:
   - python UI.py
