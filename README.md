@@ -6,7 +6,7 @@
 # Instrucciones:
 
 Entrnamiendo de modelo:
-  - data_train.py
+  - python data_train.py
 
 Motor de busqueda:
   - python UI.py
